@@ -9,11 +9,16 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -25,9 +30,13 @@ public class SignUpFrame extends JFrame {
     private JPasswordField passwordField;
     private JButton signUpButton;
 
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521:XE";
+    private static final String USERNAME = "SCOTT";
+    private static final String PASSWORD = "TIGER";
+
     public SignUpFrame() {
         super("회원가입");
-        
+
         // UI 요소 초기화
         JLabel nameLabel = new JLabel("이름:");
         JLabel idLabel = new JLabel("아이디:");
@@ -57,15 +66,20 @@ public class SignUpFrame extends JFrame {
                 System.out.println("아이디: " + id);
                 System.out.println("비밀번호: " + password);
 
-                // 실제로는 여기서 회원가입 처리를 수행해야 합니다.
-                // 예를 들어, 입력된 정보를 데이터베이스에 저장합니다.
+                // 사용자 정보를 데이터베이스에 삽입
+                if (insertUser(name, id, password)) {
+                    JOptionPane.showMessageDialog(SignUpFrame.this, "회원가입 성공: " + name + "환영합니다!!!");
+                    openLoginPage();
+                } else {
+                    JOptionPane.showMessageDialog(SignUpFrame.this, "회원가입 실패", "경고", JOptionPane.WARNING_MESSAGE);
+                }	
             }
         });
 
         // 폼 디자인
         BackgroundPanel panel = new BackgroundPanel();
         panel.setLayout(new GridBagLayout());
-        panel.setBackgroundImage(new ImageIcon("src\\\\JAVA_PROJECT\\\\IMG\\\\LOGIN.jpeg")); // 이미지 경로를 수정하세요
+        panel.setBackgroundImage(new ImageIcon("src\\JAVA_PROJECT\\IMG\\LOGIN.jpeg")); // 이미지 경로를 수정하세요
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -102,7 +116,7 @@ public class SignUpFrame extends JFrame {
         setSize(500, 600);
     }
 
-    class BackgroundPanel extends JPanel {
+    static class BackgroundPanel extends JPanel {
         private Image backgroundImage;
 
         public BackgroundPanel() {
@@ -120,5 +134,40 @@ public class SignUpFrame extends JFrame {
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         }
+    }
+
+    private boolean insertUser(String name, String id, String password) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+
+        try {
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            String query = "INSERT INTO users (id, username, password) VALUES (?, ?, ?)";
+            statement = connection.prepareStatement(query);
+            statement.setString(1, id); // id 값 설정
+            statement.setString(2, name); // username 값 설정
+            statement.setString(3, password); // password 값 설정
+            int rowsInserted = statement.executeUpdate();
+            return rowsInserted > 0;
+        } catch (SQLException ex) {
+            System.out.println("회원가입 실패: " + ex.getMessage());
+            return false;
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void openLoginPage() {
+        new FancyLoginFrame();
+        dispose(); // 회원가입 창 닫기
     }
 }

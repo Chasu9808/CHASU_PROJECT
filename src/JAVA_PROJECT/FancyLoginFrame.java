@@ -4,11 +4,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class FancyLoginFrame extends JFrame {
 
     private JTextField usernameField;
     private JPasswordField passwordField;
+
+    private static final String DB_URL = "jdbc:oracle:thin:@localhost:1521:xe"; // Oracle 데이터베이스 URL
+    private static final String USER = "SCOTT"; // 데이터베이스 사용자 이름
+    private static final String PASS = "TIGER"; // 데이터베이스 암호
 
     public FancyLoginFrame() {
         super("로그인");
@@ -46,18 +55,35 @@ public class FancyLoginFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText();
-                char[] passwordChars = passwordField.getPassword();
-                String password = new String(passwordChars);
+                String password = new String(passwordField.getPassword());
 
-                // 콘솔에 로그인 정보 출력
-                System.out.println("아이디: " + username);
-                System.out.println("비밀번호: " + password);
+                // 데이터베이스와의 연결을 시도합니다.
+                try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
+                    // SQL 쿼리를 준비합니다.
+                    String sql = "SELECT * FROM users WHERE username=? AND password=?";
+                    PreparedStatement statement = conn.prepareStatement(sql);
+                    statement.setString(1, username);
+                    statement.setString(2, password);
 
-                // 방문을 환영합니다 알림창 표시
-                JOptionPane.showMessageDialog(FancyLoginFrame.this, "방문을 환영합니다!");
+                    // 쿼리를 실행하고 결과를 가져옵니다.
+                    ResultSet rs = statement.executeQuery();
+
+                    // 결과가 존재하는 경우 로그인 성공
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(FancyLoginFrame.this,
+                                "방문을 환영합니다!", "환영합니다!", JOptionPane.INFORMATION_MESSAGE);
+                        openMainPage();
+                    } else {
+                        JOptionPane.showMessageDialog(FancyLoginFrame.this,
+                                "로그인에 실패했습니다. 다시 시도해주세요.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(FancyLoginFrame.this,
+                            "데이터베이스 연결에 문제가 발생했습니다.", "에러", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
-
 
         // 회원가입 버튼 이벤트 처리
         joinButton.addActionListener(new ActionListener() {
@@ -65,6 +91,7 @@ public class FancyLoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // 회원가입 페이지 열기
                 openSignUpPage();
+                dispose();
             }
         });
 
@@ -115,10 +142,12 @@ public class FancyLoginFrame extends JFrame {
         // 회원가입 페이지 열기
         new SignUpFrame();
     }
+    
+    private void openMainPage() {
+        new MainPageFrame();
+   }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(FancyLoginFrame::new);
     }
-    
-    
 }
