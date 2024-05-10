@@ -116,6 +116,7 @@ public class WritePageFrame extends JFrame {
 
             if (rowsInserted > 0) {
                 JOptionPane.showMessageDialog(this, "게시글이 성공적으로 등록되었습니다.");
+                openMainPage();
             } else {
                 JOptionPane.showMessageDialog(this, "게시글 등록에 실패했습니다.");
             }
@@ -154,4 +155,8 @@ public class WritePageFrame extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(WritePageFrame::new);
     }
+    private void openMainPage() {
+        new MainPageFrame().setVisible(true);
+    }
+
 }

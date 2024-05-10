@@ -4,11 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class FancyLoginFrame extends JFrame {
 
@@ -31,7 +27,7 @@ public class FancyLoginFrame extends JFrame {
         JLabel logoLabel = new JLabel(logoImage);
 
         // UI 요소 초기화
-        JLabel usernameLabel = new JLabel("ID :");
+        JLabel usernameLabel = new JLabel("NAME :");
         JLabel passwordLabel = new JLabel("PASS :");
         usernameField = new JTextField(20);
         passwordField = new JPasswordField(20);
@@ -56,6 +52,13 @@ public class FancyLoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
+
+                // 두 필드 모두 입력되었는지 확인
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(FancyLoginFrame.this,
+                            "ID와 비밀번호를 모두 입력해주세요.", "입력 필요", JOptionPane.ERROR_MESSAGE);
+                    return; // 입력이 누락되었으므로 로그인 시도 중단
+                }
 
                 // 데이터베이스와의 연결을 시도합니다.
                 try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
@@ -145,7 +148,7 @@ public class FancyLoginFrame extends JFrame {
     
     private void openMainPage() {
         new MainPageFrame();
-   }
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(FancyLoginFrame::new);

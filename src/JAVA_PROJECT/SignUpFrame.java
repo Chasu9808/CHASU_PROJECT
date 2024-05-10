@@ -38,9 +38,9 @@ public class SignUpFrame extends JFrame {
         super("회원가입");
 
         // UI 요소 초기화
-        JLabel nameLabel = new JLabel("이름:");
-        JLabel idLabel = new JLabel("아이디:");
-        JLabel passwordLabel = new JLabel("비밀번호:");
+        JLabel idLabel = new JLabel("아이디");
+        JLabel nameLabel = new JLabel("이름");
+        JLabel passwordLabel = new JLabel("비밀번호");
         nameField = new JTextField(20);
         idField = new JTextField(20);
         passwordField = new JPasswordField(20);
@@ -62,13 +62,13 @@ public class SignUpFrame extends JFrame {
                 String password = new String(passwordChars);
 
                 // 콘솔에 회원가입 정보 출력
-                System.out.println("이름: " + name);
                 System.out.println("아이디: " + id);
+                System.out.println("이름: " + name);
                 System.out.println("비밀번호: " + password);
 
                 // 사용자 정보를 데이터베이스에 삽입
-                if (insertUser(name, id, password)) {
-                    JOptionPane.showMessageDialog(SignUpFrame.this, "회원가입 성공: " + name + "환영합니다!!!");
+                if (insertUser(id, name, password)) {
+                    JOptionPane.showMessageDialog(SignUpFrame.this, "회원가입 성공: " + id + "환영합니다!!!");
                     openLoginPage();
                 } else {
                     JOptionPane.showMessageDialog(SignUpFrame.this, "회원가입 실패", "경고", JOptionPane.WARNING_MESSAGE);
@@ -86,16 +86,16 @@ public class SignUpFrame extends JFrame {
         
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(nameLabel, gbc);
-
-        gbc.gridy = 1;
-        panel.add(nameField, gbc);
-
-        gbc.gridy = 2;
         panel.add(idLabel, gbc);
 
-        gbc.gridy = 3;
+        gbc.gridy = 1;
         panel.add(idField, gbc);
+
+        gbc.gridy = 2;
+        panel.add(nameLabel, gbc);
+
+        gbc.gridy = 3;
+        panel.add(nameField, gbc);
 
         gbc.gridy = 4;
         panel.add(passwordLabel, gbc);

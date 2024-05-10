@@ -3,7 +3,6 @@ package JAVA_PROJECT;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -45,6 +44,7 @@ public class MainPageFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // 글쓰기 페이지로 넘어감
+            	dispose();
                 openWritePage();
             }
         });
@@ -59,6 +59,12 @@ public class MainPageFrame extends JFrame {
                 if (selectedRow != -1) {
                     // 테이블에서 선택된 행 삭제
                     tableModel.removeRow(selectedRow);
+
+                    // 선택된 행의 ID 가져오기
+                    int postId = (int) table.getValueAt(selectedRow, 0);
+
+                    // 내부 DB에서 해당 행 삭제
+                    deletePostFromDatabase(postId);
                 } else {
                     JOptionPane.showMessageDialog(MainPageFrame.this, "삭제할 행을 선택해주세요.", "알림", JOptionPane.WARNING_MESSAGE);
                 }
@@ -127,6 +133,39 @@ public class MainPageFrame extends JFrame {
     private void openModifyPage(int postId, String title, String content) {
         // 수정 페이지 열기
         new ModifyPageFrame(postId, title, content).setVisible(true);
+    }
+
+    private void deletePostFromDatabase(int postId) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+
+        try {
+            // Oracle JDBC 드라이버 로드
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+
+            // 데이터베이스 연결 설정
+            String url = "jdbc:oracle:thin:@localhost:1521:XE"; // 데이터베이스 URL
+            String username = "SCOTT"; // 사용자명
+            String password = "TIGER"; // 비밀번호
+            connection = DriverManager.getConnection(url, username, password);
+
+            // SQL 쿼리 작성 및 실행 (해당 postId에 해당하는 행 삭제)
+            String sql = "DELETE FROM posts WHERE post_id = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, postId);
+            statement.executeUpdate();
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            // 오류 처리
+        } finally {
+            // 리소스 해제
+            try {
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void retrievePostsFromDatabase() {
